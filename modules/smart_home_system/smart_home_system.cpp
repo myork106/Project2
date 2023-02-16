@@ -9,20 +9,7 @@
 #include "fire_alarm.h"
 #include "pc_serial_com.h"
 #include "event_log.h"
-
-//=====[Declaration of private defines]========================================
-
-//=====[Declaration of private data types]=====================================
-
-//=====[Declaration and initialization of public global objects]===============
-
-//=====[Declaration of external public global variables]=======================
-
-//=====[Declaration and initialization of public global variables]=============
-
-//=====[Declaration and initialization of private global variables]============
-
-//=====[Declarations (prototypes) of private functions]========================
+#include "servo.h"          //included to initialize servo motor
 
 //=====[Implementations of public functions]===================================
 
@@ -31,6 +18,7 @@ void smartHomeSystemInit()
     userInterfaceInit();
     fireAlarmInit();
     pcSerialComInit();
+    servoInit();        //initialize servo with 20ms period at position 0 degrees
 }
 
 void smartHomeSystemUpdate()
@@ -41,5 +29,3 @@ void smartHomeSystemUpdate()
     eventLogUpdate();
     delay(SYSTEM_TIME_INCREMENT_MS);
 }
-
-//=====[Implementations of private functions]==================================

@@ -12,8 +12,7 @@
 #include "temperature_sensor.h"
 #include "gas_sensor.h"
 #include "event_log.h"
-
-//=====[Declaration of private defines]========================================
+#include "user_interface.h"
 
 //=====[Declaration of private data types]=====================================
 
@@ -29,12 +28,17 @@ UnbufferedSerial uartUsb(USBTX, USBRX, 115200);
 
 //=====[Declaration of external public global variables]=======================
 
+extern float incorrectTries;
+//extrernal variable declared in user_interface
+//sets incorrectTries to zero if code is reset in serial terminal
+
 //=====[Declaration and initialization of public global variables]=============
 
 char codeSequenceFromPcSerialCom[CODE_NUMBER_OF_KEYS];
 
 //=====[Declaration and initialization of private global variables]============
 
+static char* gateCode;  //stores gate code string to write to serial terminal
 static pcSerialComMode_t pcSerialComMode = PC_SERIAL_COMMANDS;
 static bool codeComplete = false;
 static int numberOfCodeChars = 0;
@@ -59,6 +63,7 @@ static void commandShowCurrentTemperatureInFahrenheit();
 static void commandSetDateAndTime();
 static void commandShowDateAndTime();
 static void commandShowStoredEvents();
+static void commandGetGateCode();
 
 //=====[Implementations of public functions]===================================
 
@@ -166,6 +171,7 @@ static void pcSerialComCommandUpdate( char receivedChar )
         case 's': case 'S': commandSetDateAndTime(); break;
         case 't': case 'T': commandShowDateAndTime(); break;
         case 'e': case 'E': commandShowStoredEvents(); break;
+        case 'g': case 'G': commandGetGateCode(); break;
         default: availableCommands(); break;
     } 
 }
@@ -183,7 +189,16 @@ static void availableCommands()
     pcSerialComStringWrite( "Press 's' or 'S' to set the date and time\r\n" );
     pcSerialComStringWrite( "Press 't' or 'T' to get the date and time\r\n" );
     pcSerialComStringWrite( "Press 'e' or 'E' to get the stored events\r\n" );
+    pcSerialComStringWrite( "Press 'g' of 'G' to get the gate code\r\n" );
     pcSerialComStringWrite( "\r\n" );
+}
+
+//print gate code to serial terminal
+static void commandGetGateCode()
+{
+    gateCode = getCode();
+    pcSerialComStringWrite( gateCode );
+    pcSerialComStringWrite(" \r\n");
 }
 
 static void commandShowCurrentAlarmState()
@@ -231,6 +246,8 @@ static void commandEnterNewCode()
     pcSerialComStringWrite( "Please enter the new four digits numeric code " );
     pcSerialComStringWrite( "to deactivate the alarm: " );
     numberOfCodeChars = 0;
+    incorrectTries = 0;
+    //resets incorect tries recorded in user_interface to zero
     pcSerialComMode = PC_SERIAL_SAVE_NEW_CODE;
 
 }
